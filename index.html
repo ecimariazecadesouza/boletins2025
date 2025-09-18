@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Geração de Boletins</title>
+    <title>Portal de Desempenho Acadêmico</title>
+    <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- TELA DE CARREGAMENTO (OVERLAY ) -->
     <div id="loader-overlay" class="loader-overlay" style="display: none;">
         <div class="loader-content">
             <div class="loader-spinner"></div>
@@ -20,57 +20,63 @@
     </div>
 
     <div class="container">
-        <header class="main-header">
-            <h1>Sistema de Geração de Boletins</h1>
-            <p>Selecione os filtros para gerar boletins individuais ou em massa.</p>
-        </header>
+        <nav class="main-nav">
+            <div class="nav-logo">
+                <img src="logo.png" alt="Logo da Escola">
+                <span>Portal Acadêmico</span>
+            </div>
+            <div class="nav-actions">
+                <button id="print-btn" class="button-icon" style="display: none;" title="Imprimir / Salvar PDF">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </button>
+                <button id="theme-toggle" class="button-icon" title="Alternar Tema">
+                    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg id="theme-icon-moon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </nav>
 
-        <!-- SEÇÃO DE FILTROS -->
-        <div class="filtros-card">
-            <div class="filtro-coluna">
-                <h3>Busca por Turma</h3>
-                <div class="form-group">
-                    <label for="turma-select">1. Selecione a Turma:</label>
-                    <select id="turma-select" disabled>
-                        <option>Carregando...</option>
-                    </select>
+        <main class="dashboard">
+            <div class="dashboard-sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Busca Rápida</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="search-input">Buscar por Nome ou Matrícula</label>
+                            <input type="text" id="search-input" placeholder="Digite para buscar...">
+                            <div id="search-results" class="search-results-container"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="aluno-turma-select">2. Selecione o Aluno:</label>
-                    <select id="aluno-turma-select" disabled>
-                        <option>Aguarde a turma...</option>
-                    </select>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Geração em Massa</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="turma-select">Selecione uma Turma</label>
+                            <select id="turma-select" disabled>
+                                <option>Carregando...</option>
+                            </select>
+                        </div>
+                        <button id="gerar-turma-btn" class="button-primary" disabled>Gerar Boletins da Turma</button>
+                    </div>
                 </div>
             </div>
-            <div class="filtro-divisor">OU</div>
-            <div class="filtro-coluna">
-                <h3>Busca por Matrícula</h3>
-                <div class="form-group">
-                    <label for="matricula-select">1. Selecione o Tipo de Matrícula:</label>
-                    <select id="matricula-select" disabled>
-                        <option>Carregando...</option>
-                    </select>
+
+            <div class="dashboard-main">
+                <div id="boletim-container" class="boletim-view">
+                    <div class="placeholder-view">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <h3>Nenhum boletim selecionado</h3>
+                        <p>Utilize a busca rápida ou a geração em massa para visualizar os boletins.</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="aluno-matricula-select">2. Selecione o Aluno:</label>
-                    <select id="aluno-matricula-select" disabled>
-                        <option>Aguarde a matrícula...</option>
-                    </select>
-                </div>
+                <div id="error-message" class="error-message" style="display: none;"></div>
             </div>
-        </div>
-
-        <div class="action-buttons">
-            <button id="gerar-turma-btn" class="button-secondary" disabled>Gerar Boletins da Turma Inteira</button>
-            <button id="print-btn" class="button-primary" style="display: none;">Imprimir / Salvar PDF</button>
-        </div>
-        
-        <div id="error-message" class="error-message" style="display: none;"></div>
-
-        <!-- CONTAINER DOS BOLETINS -->
-        <div id="boletim-container">
-            <!-- Os boletins gerados serão inseridos aqui -->
-        </div>
+        </main>
     </div>
 
     <script src="script.js"></script>
