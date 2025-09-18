@@ -1,9 +1,9 @@
 // ========================================================================
-// SCRIPT DO FRONT-END PARA O BOLETIM ESCOLAR (v3.1 - Correção de Layout)
+// SCRIPT DO FRONT-END PARA O BOLETIM ESCOLAR (v3.2 - Filtro Matrícula)
 // ========================================================================
 
 // --- CONFIGURAÇÃO ---
-const API_URL = "https://script.google.com/macros/s/AKfycbyVuQhblAYaKt-VGe5PPO-KjKwHN6qF3sw6kblEIVRu3n2mosezzIvYrqhghNEdscBw/exec"; // !! IMPORTANTE !!
+const API_URL = "https://script.google.com/macros/s/AKfycbwRhj7ZRZoBSUcOZrCtTvfzpHjp80FPa4fSYbAkLg28JHYJ1RuaNp2H6xCn6GN9vhnX/exec"; // !! IMPORTANTE !!
 
 const DISCIPLINAS = [
     { nome: "Biologia", id: "Bio" }, { nome: "Física", id: "Fís" }, { nome: "Matemática", id: "Mat" },
@@ -18,9 +18,9 @@ const DISCIPLINAS = [
 
 // --- ELEMENTOS DO DOM ---
 const turmaSelect = document.getElementById('turma-select');
-const alunoSelect = document.getElementById('aluno-select');
-const matriculaInput = document.getElementById('matricula-input');
-const buscarMatriculaBtn = document.getElementById('buscar-matricula-btn');
+const alunoTurmaSelect = document.getElementById('aluno-turma-select');
+const matriculaSelect = document.getElementById('matricula-select');
+const alunoMatriculaSelect = document.getElementById('aluno-matricula-select');
 const gerarTurmaBtn = document.getElementById('gerar-turma-btn');
 const printBtn = document.getElementById('print-btn');
 const boletimContainer = document.getElementById('boletim-container');
@@ -36,11 +36,13 @@ function toggleLoader(show, message = "Carregando...") {
 function showError(message) { errorMessage.textContent = message; errorMessage.style.display = 'block'; }
 function clearError() { errorMessage.style.display = 'none'; }
 function clearBoletins() { boletimContainer.innerHTML = ''; printBtn.style.display = 'none'; }
-function resetFilters() {
+function resetAllFilters() {
     turmaSelect.value = "";
-    alunoSelect.innerHTML = '<option>Aguarde a turma...</option>';
-    alunoSelect.disabled = true;
-    matriculaInput.value = "";
+    alunoTurmaSelect.innerHTML = '<option>Aguarde a turma...</option>';
+    alunoTurmaSelect.disabled = true;
+    matriculaSelect.value = "";
+    alunoMatriculaSelect.innerHTML = '<option>Aguarde a matrícula...</option>';
+    alunoMatriculaSelect.disabled = true;
     gerarTurmaBtn.disabled = true;
 }
 
@@ -63,48 +65,73 @@ async function fetchData(action, params = {}) {
 }
 
 // --- LÓGICA PRINCIPAL ---
-async function carregarTurmas() {
+async function carregarDadosIniciais() {
     toggleLoader(true, "Carregando dados iniciais...");
     try {
-        const turmas = await fetchData('getTurmas');
+        const [turmas, matriculas] = await Promise.all([
+            fetchData('getTurmas'),
+            fetchData('getMatriculas')
+        ]);
+
         turmaSelect.innerHTML = '<option value="">-- Selecione uma turma --</option>';
-        turmas.forEach(turma => {
-            turmaSelect.add(new Option(turma, turma));
-        });
+        turmas.forEach(turma => turmaSelect.add(new Option(turma, turma)));
         turmaSelect.disabled = false;
+
+        matriculaSelect.innerHTML = '<option value="">-- Selecione um tipo --</option>';
+        matriculas.forEach(mat => matriculaSelect.add(new Option(mat, mat)));
+        matriculaSelect.disabled = false;
+
     } catch (error) {
-        turmaSelect.innerHTML = '<option>Falha ao carregar</option>';
+        showError("Falha ao carregar dados iniciais. Verifique a API e a planilha.");
     } finally {
         toggleLoader(false);
     }
 }
 
-async function carregarAlunos(turma) {
+async function carregarAlunosPorTurma(turma) {
     clearBoletins();
     if (!turma) {
-        resetFilters();
+        resetAllFilters();
         return;
     }
     toggleLoader(true, "Carregando alunos da turma...");
     clearError();
-    alunoSelect.disabled = true;
+    alunoTurmaSelect.disabled = true;
     gerarTurmaBtn.disabled = true;
     try {
         const alunos = await fetchData('getAlunos', { turma });
-        alunoSelect.innerHTML = '<option value="">-- Selecione um aluno --</option>';
-        alunos.forEach(aluno => {
-            alunoSelect.add(new Option(aluno, aluno));
-        });
-        alunoSelect.disabled = false;
+        alunoTurmaSelect.innerHTML = '<option value="">-- Selecione um aluno --</option>';
+        alunos.forEach(aluno => alunoTurmaSelect.add(new Option(aluno, aluno)));
+        alunoTurmaSelect.disabled = false;
         gerarTurmaBtn.disabled = false;
     } catch (error) {
-        alunoSelect.innerHTML = '<option>Falha ao carregar</option>';
+        alunoTurmaSelect.innerHTML = '<option>Falha ao carregar</option>';
     } finally {
         toggleLoader(false);
     }
 }
 
-// ATUALIZADO: Reflete o novo layout do cabeçalho e da info do aluno
+async function carregarAlunosPorMatricula(matricula) {
+    clearBoletins();
+    if (!matricula) {
+        resetAllFilters();
+        return;
+    }
+    toggleLoader(true, "Carregando alunos por matrícula...");
+    clearError();
+    alunoMatriculaSelect.disabled = true;
+    try {
+        const alunos = await fetchData('getAlunos', { matricula });
+        alunoMatriculaSelect.innerHTML = '<option value="">-- Selecione um aluno --</option>';
+        alunos.forEach(aluno => alunoMatriculaSelect.add(new Option(aluno, aluno)));
+        alunoMatriculaSelect.disabled = false;
+    } catch (error) {
+        alunoMatriculaSelect.innerHTML = '<option>Falha ao carregar</option>';
+    } finally {
+        toggleLoader(false);
+    }
+}
+
 function gerarBoletimHTML(data) {
     const notasHTML = DISCIPLINAS.map(d => {
         const notas = [1, 2, 3, 4].map(i => {
@@ -153,7 +180,7 @@ async function gerarBoletim(params) {
         boletimContainer.innerHTML = gerarBoletimHTML(data);
         printBtn.style.display = 'block';
     } catch (error) {
-        // Erro já é tratado em fetchData
+        // Erro já tratado em fetchData
     } finally {
         toggleLoader(false);
     }
@@ -164,19 +191,17 @@ async function gerarBoletinsDaTurma(turma) {
     toggleLoader(true, "Iniciando geração em massa...");
     clearError();
     clearBoletins();
-    resetFilters();
-    turmaSelect.value = turma; // Mantém a turma selecionada
+    resetAllFilters();
+    turmaSelect.value = turma;
     gerarTurmaBtn.disabled = false;
 
     try {
         const alunos = await fetchData('getAlunos', { turma });
         if (!alunos || alunos.length === 0) throw new Error("Nenhum aluno encontrado para esta turma.");
 
-        let count = 0;
-        for (const aluno of alunos) {
-            count++;
-            toggleLoader(true, `Gerando boletim ${count} de ${alunos.length}...`);
-            const data = await fetchData('getBoletim', { turma, aluno });
+        for (let i = 0; i < alunos.length; i++) {
+            toggleLoader(true, `Gerando boletim ${i + 1} de ${alunos.length}...`);
+            const data = await fetchData('getBoletim', { turma, aluno: alunos[i] });
             boletimContainer.innerHTML += gerarBoletimHTML(data);
         }
         printBtn.style.display = 'block';
@@ -188,19 +213,34 @@ async function gerarBoletinsDaTurma(turma) {
 }
 
 // --- EVENT LISTENERS ---
-document.addEventListener('DOMContentLoaded', carregarTurmas);
-turmaSelect.addEventListener('change', () => carregarAlunos(turmaSelect.value));
-alunoSelect.addEventListener('change', () => {
-    if (alunoSelect.value) {
-        matriculaInput.value = ""; // Limpa o outro filtro
-        gerarBoletim({ turma: turmaSelect.value, aluno: alunoSelect.value });
+document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
+
+turmaSelect.addEventListener('change', () => {
+    matriculaSelect.value = ""; // Limpa o outro filtro principal
+    alunoMatriculaSelect.innerHTML = '<option>Aguarde a matrícula...</option>';
+    alunoMatriculaSelect.disabled = true;
+    carregarAlunosPorTurma(turmaSelect.value);
+});
+
+matriculaSelect.addEventListener('change', () => {
+    turmaSelect.value = ""; // Limpa o outro filtro principal
+    alunoTurmaSelect.innerHTML = '<option>Aguarde a turma...</option>';
+    alunoTurmaSelect.disabled = true;
+    gerarTurmaBtn.disabled = true;
+    carregarAlunosPorMatricula(matriculaSelect.value);
+});
+
+alunoTurmaSelect.addEventListener('change', () => {
+    if (alunoTurmaSelect.value) {
+        gerarBoletim({ turma: turmaSelect.value, aluno: alunoTurmaSelect.value });
     }
 });
-buscarMatriculaBtn.addEventListener('click', () => {
-    if (matriculaInput.value) {
-        resetFilters(); // Limpa os outros filtros
-        gerarBoletim({ matricula: matriculaInput.value });
+
+alunoMatriculaSelect.addEventListener('change', () => {
+    if (alunoMatriculaSelect.value) {
+        gerarBoletim({ matricula: matriculaSelect.value, aluno: alunoMatriculaSelect.value });
     }
 });
+
 gerarTurmaBtn.addEventListener('click', () => gerarBoletinsDaTurma(turmaSelect.value));
 printBtn.addEventListener('click', () => window.print());
