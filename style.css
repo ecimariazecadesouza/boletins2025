@@ -1,0 +1,165 @@
+/* --- GERAL E LAYOUT --- */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- CARD DE FILTROS --- */
+.filtros-card {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.filtros-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #005a8d;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: #fafafa;
+}
+
+select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* --- LOADER E MENSAGENS --- */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin: 15px auto 0;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    color: #d93025;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* --- ESTRUTURA DO BOLETIM --- */
+.boletim-wrapper {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.boletim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    background-color: #f7fdfc;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.boletim-header h1 {
+    margin: 0 0 15px 0;
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+}
+
+.boletim-header p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.header-info {
+    flex-grow: 1;
+}
+
+.header-logo {
+    text-align: right;
+}
+
+/* --- TABELA DE NOTAS --- */
+.boletim-main table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.boletim-main th, .boletim-main td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.boletim-main th {
+    font-weight: bold;
+}
+
+.disciplina-header {
+    background-color: #c5e0d9;
+    width: 35%;
+}
+
+.bimestres-header {
+    background-color: #a7d7c5;
+}
+
+.bimestre-numeros th {
+    background-color: #e8f5f1;
+}
+
+.boletim-main tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Cores das linhas de disciplina */
+.cor-azul { background-color: #cdebf9; }
+.cor-verde { background-color: #d8ead4; }
+.cor-amarelo { background-color: #fff2cc; }
+.cor-turquesa { background-color: #d4fcf3; }
