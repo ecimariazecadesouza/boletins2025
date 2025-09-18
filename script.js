@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. CONFIG & STATE ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbx4LsPvWhADUyy6DLQZICv_TYoJQb8p4_m24zKa9D4zUJKYQaS_eIwrRPl_k7-JLQ0/exec"; // !! IMPORTANTE !!
+    const API_URL = "https://script.google.com/macros/s/AKfycbyHy85ntOV28SOyj3ielE_RPuAlT1YOsGKS8Lo5EFmws_i6I5f00iE-HsCMr6Omdh36/exec"; // !! IMPORTANTE !!
     const state = {
         theme: localStorage.getItem('theme') || 'light',
     };
