@@ -66,15 +66,15 @@ body {
     border-radius: 0.5rem;
     box-shadow: var(--sombra);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 2rem;
 }
 .filtro-coluna { flex: 1; }
 .filtro-coluna h3 { margin-top: 0; border-bottom: 2px solid var(--cor-borda); padding-bottom: 0.5rem; }
-.filtro-divisor { font-weight: 600; color: var(--cor-texto-claro); }
+.filtro-divisor { font-weight: 600; color: var(--cor-texto-claro); margin-top: 3rem; }
 .form-group { margin-bottom: 1rem; }
 .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-select, input[type="text"] {
+select {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--cor-borda);
@@ -101,7 +101,6 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .button-primary:hover:not(:disabled) { background-color: #004c7a; }
 .button-secondary { background-color: var(--cor-secundaria); color: var(--cor-branco); }
 .button-secondary:hover:not(:disabled) { background-color: #2d3748; }
-#buscar-matricula-btn { width: 100%; }
 
 /* --- MENSAGEM DE ERRO --- */
 .error-message {
@@ -166,30 +165,41 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .boletim-main .disciplina-col { text-align: left; font-weight: 500; }
 
 /* ===================================================== */
-/* --- ESTILOS DE IMPRESSÃO (AJUSTES IMPORTANTES) --- */
+/* --- ESTILOS DE IMPRESSÃO (CORREÇÃO FINAL) --- */
 /* ===================================================== */
 @media print {
     @page {
         size: A4 portrait;
-        margin: 1cm; /* Margem menor para dar mais espaço */
+        margin: 1.5cm; /* Define a margem da página */
     }
-    body {
+    html, body {
+        width: 100%;
+        height: 100%;
         padding: 0;
         margin: 0;
         background-color: var(--cor-branco);
-        font-size: 9pt; /* Reduz o tamanho da fonte base para impressão */
+        font-size: 9pt;
     }
-    .container { max-width: 100%; gap: 0; }
-    .main-header, .filtros-card, .action-buttons, .error-message, .loader-overlay { display: none !important; }
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        gap: 0;
+    }
+    .main-header, .filtros-card, .action-buttons, .error-message, .loader-overlay {
+        display: none !important;
+    }
     #boletim-container { gap: 0; }
     .boletim-wrapper {
         box-shadow: none;
-        border: 1px solid #ccc; /* Adiciona uma borda sutil na impressão */
+        border: 1px solid #ccc;
         border-radius: 0;
         page-break-after: always;
         height: 100%;
         display: flex;
         flex-direction: column;
+        width: 100%; /* Garante que o wrapper ocupe o espaço dentro das margens */
     }
     .boletim-header { padding: 1rem; }
     .boletim-header .logo { max-width: 70px; }
@@ -202,6 +212,6 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
     .boletim-main { flex-grow: 1; }
     .boletim-main th, .boletim-main td {
-        padding: 0.4rem; /* Reduz o padding das células da tabela */
+        padding: 0.4rem;
     }
 }
