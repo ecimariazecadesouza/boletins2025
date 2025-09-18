@@ -1,5 +1,5 @@
 // ========================================================================
-// SCRIPT DO FRONT-END PARA O BOLETIM ESCOLAR (v3 - Profissional)
+// SCRIPT DO FRONT-END PARA O BOLETIM ESCOLAR (v3.1 - Correção de Layout)
 // ========================================================================
 
 // --- CONFIGURAÇÃO ---
@@ -104,6 +104,7 @@ async function carregarAlunos(turma) {
     }
 }
 
+// ATUALIZADO: Reflete o novo layout do cabeçalho e da info do aluno
 function gerarBoletimHTML(data) {
     const notasHTML = DISCIPLINAS.map(d => {
         const notas = [1, 2, 3, 4].map(i => {
@@ -121,12 +122,16 @@ function gerarBoletimHTML(data) {
                     <h2>Boletim de Desempenho</h2>
                     <p>Ano Letivo: 2025</p>
                 </div>
-                <div class="placeholder"></div>
+                <div class="header-extra-info">
+                    <div class="info-item"><strong>Matrícula:</strong> ${data.Matrícula || ''}</div>
+                    <div class="info-item"><strong>Turma:</strong> ${data['S/T'] || ''}</div>
+                </div>
             </header>
             <section class="boletim-info-aluno">
-                <div class="info-item"><strong>PROTAGONISTA</strong><span>${data.Protagonistas || ''}</span></div>
-                <div class="info-item"><strong>MATRÍCULA</strong><span>${data.Matrícula || ''}</span></div>
-                <div class="info-item"><strong>SÉRIE/TURMA</strong><span>${data['S/T'] || ''}</span></div>
+                <div class="info-item-aluno">
+                    <strong>PROTAGONISTA</strong>
+                    <span>${data.Protagonistas || ''}</span>
+                </div>
             </section>
             <main class="boletim-main">
                 <table>
@@ -148,7 +153,7 @@ async function gerarBoletim(params) {
         boletimContainer.innerHTML = gerarBoletimHTML(data);
         printBtn.style.display = 'block';
     } catch (error) {
-        // Erro já tratado em fetchData
+        // Erro já é tratado em fetchData
     } finally {
         toggleLoader(false);
     }
@@ -184,23 +189,18 @@ async function gerarBoletinsDaTurma(turma) {
 
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', carregarTurmas);
-
 turmaSelect.addEventListener('change', () => carregarAlunos(turmaSelect.value));
-
 alunoSelect.addEventListener('change', () => {
     if (alunoSelect.value) {
         matriculaInput.value = ""; // Limpa o outro filtro
         gerarBoletim({ turma: turmaSelect.value, aluno: alunoSelect.value });
     }
 });
-
 buscarMatriculaBtn.addEventListener('click', () => {
     if (matriculaInput.value) {
         resetFilters(); // Limpa os outros filtros
         gerarBoletim({ matricula: matriculaInput.value });
     }
 });
-
 gerarTurmaBtn.addEventListener('click', () => gerarBoletinsDaTurma(turmaSelect.value));
-
 printBtn.addEventListener('click', () => window.print());
