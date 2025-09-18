@@ -1,206 +1,172 @@
-// ========================================================================
-// SCRIPT DO FRONT-END PARA O BOLETIM ESCOLAR (v3 - Profissional)
-// ========================================================================
+// =================================================================== */
+//             PRESTIGE EDITION - SCRIPT & LOGIC (v4.5 Final)          */
+// =================================================================== */
 
-// --- CONFIGURAÇÃO ---
-const API_URL = "https://script.google.com/macros/s/AKfycbytkfDm8IaFt839CN44ucC_98-e2oHzbrp_B_n0_71PvfMmrAwmCHB4mjbgYXtmbg7Z/exec"; // !! IMPORTANTE !!
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 1. CONFIG & STATE ---
+    const API_URL = "https://script.google.com/macros/s/AKfycbyVEtjUPXzp9zqx7OnCA86FT77DyQaew__rytHQnURF1qIhcnCwxnsSEEqhmz6AnLvf/exec"; // !! IMPORTANTE !!
+    const state = {
+        theme: localStorage.getItem('theme') || 'light',
+    };
 
-const DISCIPLINAS = [
-    { nome: "Biologia", id: "Bio" }, { nome: "Física", id: "Fís" }, { nome: "Matemática", id: "Mat" },
-    { nome: "Química", id: "Quí" }, { nome: "Filosofia", id: "Fil" }, { nome: "Geografia", id: "Geo" },
-    { nome: "História", id: "His" }, { nome: "Sociologia", id: "Soc" }, { nome: "Arte", id: "Art" },
-    { nome: "Ed. Física", id: "EdF" }, { nome: "Espanhol", id: "Esp" }, { nome: "Inglês", id: "Ing" },
-    { nome: "Português", id: "Por" }, { nome: "Aprofundamento", id: "Apro" }, { nome: "Eletiva", id: "Elet" },
-    { nome: "Práticas Integradoras 1", id: "PI1" }, { nome: "Práticas Integradoras 2", id: "PI2" },
-    { nome: "Projeto de Vida", id: "PV" }, { nome: "Produção Textual", id: "PT" },
-    { nome: "Rec. da Apred. L. Port.", id: "RALP" }, { nome: "Rec. da Apred. Mat.", id: "RAM" }
-];
+    // --- 2. DOM ELEMENTS (sem alterações) ---
+    const DOMElements = {
+        loader: document.getElementById('loader-overlay'),
+        loaderMessage: document.getElementById('loader-message'),
+        matriculaSelect: document.getElementById('matricula-select'),
+        turmaSelect: document.getElementById('turma-select'),
+        alunoSelect: document.getElementById('aluno-select'),
+        gerarBtn: document.getElementById('gerar-btn'),
+        printBtn: document.getElementById('print-btn'),
+        boletimContainer: document.getElementById('boletim-container'),
+        errorMessage: document.getElementById('error-message'),
+        themeToggle: document.getElementById('theme-toggle'),
+        themeIconSun: document.getElementById('theme-icon-sun'),
+        themeIconMoon: document.getElementById('theme-icon-moon'),
+        html: document.documentElement,
+    };
 
-// --- ELEMENTOS DO DOM ---
-const turmaSelect = document.getElementById('turma-select');
-const alunoSelect = document.getElementById('aluno-select');
-const matriculaInput = document.getElementById('matricula-input');
-const buscarMatriculaBtn = document.getElementById('buscar-matricula-btn');
-const gerarTurmaBtn = document.getElementById('gerar-turma-btn');
-const printBtn = document.getElementById('print-btn');
-const boletimContainer = document.getElementById('boletim-container');
-const errorMessage = document.getElementById('error-message');
-const loaderOverlay = document.getElementById('loader-overlay');
-const loaderMessage = document.getElementById('loader-message');
-
-// --- FUNÇÕES DE CONTROLE DA UI ---
-function toggleLoader(show, message = "Carregando...") {
-    loaderMessage.textContent = message;
-    loaderOverlay.style.display = show ? 'flex' : 'none';
-}
-function showError(message) { errorMessage.textContent = message; errorMessage.style.display = 'block'; }
-function clearError() { errorMessage.style.display = 'none'; }
-function clearBoletins() { boletimContainer.innerHTML = ''; printBtn.style.display = 'none'; }
-function resetFilters() {
-    turmaSelect.value = "";
-    alunoSelect.innerHTML = '<option>Aguarde a turma...</option>';
-    alunoSelect.disabled = true;
-    matriculaInput.value = "";
-    gerarTurmaBtn.disabled = true;
-}
-
-// --- FUNÇÕES DE API ---
-async function fetchData(action, params = {}) {
-    const url = new URL(API_URL);
-    url.searchParams.append('action', action);
-    for (const key in params) { url.searchParams.append(key, params[key]); }
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erro de rede: ${response.statusText}`);
-        const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
-        return result.data;
-    } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-        showError(error.message);
-        throw error;
-    }
-}
-
-// --- LÓGICA PRINCIPAL ---
-async function carregarTurmas() {
-    toggleLoader(true, "Carregando dados iniciais...");
-    try {
-        const turmas = await fetchData('getTurmas');
-        turmaSelect.innerHTML = '<option value="">-- Selecione uma turma --</option>';
-        turmas.forEach(turma => {
-            turmaSelect.add(new Option(turma, turma));
-        });
-        turmaSelect.disabled = false;
-    } catch (error) {
-        turmaSelect.innerHTML = '<option>Falha ao carregar</option>';
-    } finally {
-        toggleLoader(false);
-    }
-}
-
-async function carregarAlunos(turma) {
-    clearBoletins();
-    if (!turma) {
-        resetFilters();
-        return;
-    }
-    toggleLoader(true, "Carregando alunos da turma...");
-    clearError();
-    alunoSelect.disabled = true;
-    gerarTurmaBtn.disabled = true;
-    try {
-        const alunos = await fetchData('getAlunos', { turma });
-        alunoSelect.innerHTML = '<option value="">-- Selecione um aluno --</option>';
-        alunos.forEach(aluno => {
-            alunoSelect.add(new Option(aluno, aluno));
-        });
-        alunoSelect.disabled = false;
-        gerarTurmaBtn.disabled = false;
-    } catch (error) {
-        alunoSelect.innerHTML = '<option>Falha ao carregar</option>';
-    } finally {
-        toggleLoader(false);
-    }
-}
-
-function gerarBoletimHTML(data) {
-    const notasHTML = DISCIPLINAS.map(d => {
-        const notas = [1, 2, 3, 4].map(i => {
-            const key = d.id === 'PI1' ? `PI1${i}` : d.id === 'PI2' ? `PI2${i}` : `${d.id}${i}`;
-            return `<td>${data[key] || '-'}</td>`;
-        }).join('');
-        return `<tr><td class="disciplina-col">${d.nome}</td>${notas}</tr>`;
-    }).join('');
-
-    return `
-        <div class="boletim-wrapper">
-            <header class="boletim-header">
-                <img src="logo.png" alt="Logo da Escola" class="logo">
-                <div class="titulo">
-                    <h2>Boletim de Desempenho</h2>
-                    <p>Ano Letivo: 2025</p>
-                </div>
-                <div class="placeholder"></div>
-            </header>
-            <section class="boletim-info-aluno">
-                <div class="info-item"><strong>PROTAGONISTA</strong><span>${data.Protagonistas || ''}</span></div>
-                <div class="info-item"><strong>MATRÍCULA</strong><span>${data.Matrícula || ''}</span></div>
-                <div class="info-item"><strong>SÉRIE/TURMA</strong><span>${data['S/T'] || ''}</span></div>
-            </section>
-            <main class="boletim-main">
-                <table>
-                    <thead><tr><th>Disciplina</th><th>1º Bim</th><th>2º Bim</th><th>3º Bim</th><th>4º Bim</th></tr></thead>
-                    <tbody>${notasHTML}</tbody>
-                </table>
-            </main>
-        </div>
-    `;
-}
-
-async function gerarBoletim(params) {
-    toggleLoader(true, "Gerando boletim...");
-    clearError();
-    clearBoletins();
-    try {
-        const data = await fetchData('getBoletim', params);
-        if (!data) throw new Error("Aluno não encontrado com os parâmetros fornecidos.");
-        boletimContainer.innerHTML = gerarBoletimHTML(data);
-        printBtn.style.display = 'block';
-    } catch (error) {
-        // Erro já tratado em fetchData
-    } finally {
-        toggleLoader(false);
-    }
-}
-
-async function gerarBoletinsDaTurma(turma) {
-    if (!turma) return;
-    toggleLoader(true, "Iniciando geração em massa...");
-    clearError();
-    clearBoletins();
-    resetFilters();
-    turmaSelect.value = turma; // Mantém a turma selecionada
-    gerarTurmaBtn.disabled = false;
-
-    try {
-        const alunos = await fetchData('getAlunos', { turma });
-        if (!alunos || alunos.length === 0) throw new Error("Nenhum aluno encontrado para esta turma.");
-
-        let count = 0;
-        for (const aluno of alunos) {
-            count++;
-            toggleLoader(true, `Gerando boletim ${count} de ${alunos.length}...`);
-            const data = await fetchData('getBoletim', { turma, aluno });
-            boletimContainer.innerHTML += gerarBoletimHTML(data);
+    // --- 3. UI MODULE (sem alterações) ---
+    const UI = {
+        toggleLoader(show, message = "Processando...") {
+            DOMElements.loaderMessage.textContent = message;
+            DOMElements.loader.style.display = show ? 'flex' : 'none';
+        },
+        showError(message) {
+            DOMElements.errorMessage.textContent = message;
+            DOMElements.errorMessage.style.display = 'block';
+        },
+        clearError() { DOMElements.errorMessage.style.display = 'none'; },
+        applyTheme(theme) {
+            DOMElements.html.classList.remove('light', 'dark');
+            DOMElements.html.classList.add(theme);
+            DOMElements.themeIconSun.style.display = theme === 'light' ? 'block' : 'none';
+            DOMElements.themeIconMoon.style.display = theme === 'dark' ? 'block' : 'none';
+            localStorage.setItem('theme', theme);
+            state.theme = theme;
+        },
+        toggleTheme() {
+            const newTheme = state.theme === 'light' ? 'dark' : 'light';
+            this.applyTheme(newTheme);
+        },
+        resetSelect(select, message) {
+            select.innerHTML = `<option value="">${message}</option>`;
+            select.disabled = true;
+        },
+        populateSelect(select, data, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            data.forEach(item => select.add(new Option(item, item)));
+            select.disabled = false;
         }
-        printBtn.style.display = 'block';
-    } catch (error) {
-        // Erro já tratado
-    } finally {
-        toggleLoader(false);
-    }
-}
+    };
 
-// --- EVENT LISTENERS ---
-document.addEventListener('DOMContentLoaded', carregarTurmas);
+    // --- 4. API MODULE (simplificado) ---
+    const API = {
+        async fetchData(action, params = {}, method = 'GET', body = null) {
+            const url = new URL(API_URL);
+            const options = { method, redirect: 'follow' };
 
-turmaSelect.addEventListener('change', () => carregarAlunos(turmaSelect.value));
+            if (method === 'GET') {
+                url.searchParams.append('action', action);
+                for (const key in params) { if (params[key]) url.searchParams.append(key, params[key]); }
+            } else { // POST
+                options.body = JSON.stringify({ action, params: body }); // Simplificado
+                options.headers = { 'Content-Type': 'text/plain;charset=utf-8' }; // Necessário para Apps Script
+            }
 
-alunoSelect.addEventListener('change', () => {
-    if (alunoSelect.value) {
-        matriculaInput.value = ""; // Limpa o outro filtro
-        gerarBoletim({ turma: turmaSelect.value, aluno: alunoSelect.value });
-    }
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`Erro de rede: ${response.statusText}`);
+                const result = await response.json();
+                if (result.status === 'error') throw new Error(result.message);
+                return result.data;
+            } catch (error) {
+                console.error('API Error:', error);
+                UI.showError(error.message);
+                throw error;
+            }
+        }
+    };
+
+    // --- 5. APP LOGIC (lógica de geração simplificada) ---
+    const App = {
+        async init() {
+            UI.applyTheme(state.theme);
+            DOMElements.printBtn.style.display = 'none';
+            UI.toggleLoader(true, "Carregando dados...");
+            try {
+                const matriculas = await API.fetchData('getMatriculas');
+                UI.populateSelect(DOMElements.matriculaSelect, matriculas, 'Selecione um tipo');
+            } catch (error) {
+                UI.showError("Falha crítica ao carregar dados iniciais.");
+            } finally {
+                UI.toggleLoader(false);
+            }
+        },
+
+        async handleMatriculaChange(matricula) {
+            UI.resetSelect(DOMElements.turmaSelect, 'Aguardando...');
+            UI.resetSelect(DOMElements.alunoSelect, 'Aguardando...');
+            DOMElements.gerarBtn.disabled = true;
+            if (!matricula) return;
+
+            UI.toggleLoader(true, "Filtrando turmas...");
+            try {
+                const { turmas } = await API.fetchData('getFilteredData', { matricula });
+                UI.populateSelect(DOMElements.turmaSelect, turmas, 'Todas as turmas');
+                DOMElements.gerarBtn.disabled = false;
+            } finally {
+                UI.toggleLoader(false);
+            }
+        },
+
+        async handleTurmaChange(matricula, turma) {
+            UI.resetSelect(DOMElements.alunoSelect, 'Aguardando...');
+            if (!matricula) return;
+
+            UI.toggleLoader(true, "Filtrando alunos...");
+            try {
+                const { alunos } = await API.fetchData('getFilteredData', { matricula, turma });
+                UI.populateSelect(DOMElements.alunoSelect, alunos, 'Todos os alunos');
+            } finally {
+                UI.toggleLoader(false);
+            }
+        },
+
+        async handleGerarClick() {
+            const matricula = DOMElements.matriculaSelect.value;
+            const turma = DOMElements.turmaSelect.value;
+            const aluno = DOMElements.alunoSelect.value;
+
+            if (!matricula) return;
+
+            UI.toggleLoader(true, "Iniciando geração do PDF...");
+            UI.clearError();
+            DOMElements.boletimContainer.innerHTML = `<div class="placeholder-view"><p>Gerando PDF, por favor aguarde...</p></div>`;
+
+            try {
+                // Envia os filtros diretamente para a API gerar o PDF
+                const { pdfUrl } = await API.fetchData('generatePdf', {}, 'POST', { matricula, turma, aluno });
+
+                UI.toggleLoader(false);
+                DOMElements.boletimContainer.innerHTML = `<div class="placeholder-view"><h3>PDF Gerado com Sucesso!</h3><p>Seu download começará em breve. Caso não comece, <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">clique aqui</a>.</p></div>`;
+                
+                window.open(pdfUrl, '_blank');
+
+            } catch (error) {
+                DOMElements.boletimContainer.innerHTML = `<div class="placeholder-view"><h3>Ocorreu um erro</h3><p>Não foi possível gerar o PDF. Tente novamente.</p></div>`;
+            } finally {
+                UI.toggleLoader(false);
+            }
+        },
+    };
+
+    // --- 6. EVENT LISTENERS ---
+    DOMElements.themeToggle.addEventListener('click', () => UI.toggleTheme());
+    DOMElements.matriculaSelect.addEventListener('change', (e) => App.handleMatriculaChange(e.target.value));
+    DOMElements.turmaSelect.addEventListener('change', (e) => App.handleTurmaChange(DOMElements.matriculaSelect.value, e.target.value));
+    DOMElements.gerarBtn.addEventListener('click', () => App.handleGerarClick());
+
+    // --- INITIALIZE APP ---
+    App.init();
 });
-
-buscarMatriculaBtn.addEventListener('click', () => {
-    if (matriculaInput.value) {
-        resetFilters(); // Limpa os outros filtros
-        gerarBoletim({ matricula: matriculaInput.value });
-    }
-});
-
-gerarTurmaBtn.addEventListener('click', () => gerarBoletinsDaTurma(turmaSelect.value));
-
-printBtn.addEventListener('click', () => window.print());
