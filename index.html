@@ -22,49 +22,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="aluno-select">2. Selecione o Aluno:</label>
+                <label for="aluno-select">2. Selecione um Aluno (para boletim individual ):</label>
                 <select id="aluno-select" disabled>
                     <option>Aguardando seleção da turma...</option>
                 </select>
             </div>
+            
+            <div class="action-buttons">
+                <button id="gerar-turma-btn" class="button-secondary" disabled>Gerar Todos da Turma</button>
+                <button id="print-btn" class="button-primary" style="display: none;">Imprimir / Salvar PDF</button>
+            </div>
+
             <div id="loader" class="loader" style="display: none;"></div>
             <div id="error-message" class="error-message" style="display: none;"></div>
         </div>
 
-        <!-- SEÇÃO DO BOLETIM (inicialmente oculta ) -->
-        <div id="boletim-container" class="boletim-wrapper" style="display: none;">
-            <header class="boletim-header">
-                <div class="header-info">
-                    <h1>BOLETIM ESCOLAR 2025</h1>
-                    <p><strong>Série/Turma:</strong> <span id="boletim-turma"><<S/T>></span></p>
-                    <p><strong>Protagonista:</strong> <span id="boletim-protagonista"><<Protagonistas>></span></p>
-                </div>
-                <div class="header-logo">
-                    <!-- <img src="url_do_seu_logo.png" alt="Logo da Escola"> -->
-                    <p><strong>Matrícula:</strong> <span id="boletim-matricula"><<Matrícula>></span></p>
-                </div>
-            </header>
-
-            <main class="boletim-main">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="disciplina-header">Disciplinas</th>
-                            <th colspan="4" class="bimestres-header">Bimestres</th>
-                        </tr>
-                        <tr class="bimestre-numeros">
-                            <th></th>
-                            <th>1º</th>
-                            <th>2º</th>
-                            <th>3º</th>
-                            <th>4º</th>
-                        </tr>
-                    </thead>
-                    <tbody id="boletim-notas">
-                        <!-- As linhas de notas serão inseridas aqui pelo JavaScript -->
-                    </tbody>
-                </table>
-            </main>
+        <!-- SEÇÃO DO BOLETIM (pode conter múltiplos) -->
+        <div id="boletim-container">
+            <!-- Os boletins gerados serão inseridos aqui -->
         </div>
     </div>
 
