@@ -3,7 +3,7 @@
 // ========================================================================
 
 // --- CONFIGURAÇÃO ---
-const API_URL = "https://script.google.com/macros/s/AKfycbwE-FX_k9NEfKYTtaCZp-OR8qI2ky2M47L4EpBdNlPFMnZnXdIjQWN1oa8d2-GHyr1V/exec"; // !! IMPORTANTE !!
+const API_URL = "https://script.google.com/macros/s/AKfycbytkfDm8IaFt839CN44ucC_98-e2oHzbrp_B_n0_71PvfMmrAwmCHB4mjbgYXtmbg7Z/exec"; // !! IMPORTANTE !!
 
 const DISCIPLINAS = [
     { nome: "Biologia", id: "Bio" }, { nome: "Física", id: "Fís" }, { nome: "Matemática", id: "Mat" },
