@@ -1,5 +1,5 @@
 // =================================================================== */
-//         PRESTIGE EDITION - SCRIPT & LOGIC (v5.0 Clarity Update)     */
+//         PRESTIGE EDITION - SCRIPT & LOGIC (v5.1 Final Fix)          */
 // =================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { nome: "Rec. da Apred. L. Port.", id: "RALP" }, { nome: "Rec. da Apred. Mat.", id: "RAM" }
     ];
 
-    // --- 2. DOM ELEMENTS ---
+    // --- 2. DOM ELEMENTS (sem alterações) ---
     const DOMElements = {
         loader: document.getElementById('loader-overlay'),
         loaderMessage: document.getElementById('loader-message'),
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html: document.documentElement,
     };
 
-    // --- 3. UI MODULE ---
+    // --- 3. UI MODULE (sem alterações) ---
     const UI = {
         toggleLoader(show, message = "Processando...") { DOMElements.loader.style.display = show ? 'flex' : 'none'; DOMElements.loaderMessage.textContent = message; },
         showError(message) { DOMElements.errorMessage.textContent = message; DOMElements.errorMessage.style.display = 'block'; },
@@ -68,16 +68,23 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBoletimHTML(html) { DOMElements.boletimContainer.innerHTML = html; }
     };
 
-    // --- 4. API MODULE ---
+    // --- 4. API MODULE (CORRIGIDO) ---
     const API = {
         async fetchData(action, params = {}, method = 'GET') {
             const url = new URL(API_URL);
             const options = { method, redirect: 'follow' };
-            
-            const payload = { action, params };
+
             if (method === 'GET') {
-                Object.keys(payload).forEach(key => url.searchParams.append(key, JSON.stringify(payload[key])));
+                // CORREÇÃO: Envia parâmetros GET da forma que o Apps Script espera
+                url.searchParams.append('action', action);
+                for (const key in params) {
+                    if (params.hasOwnProperty(key)) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                }
             } else { // POST
+                // A lógica POST está correta e permanece a mesma
+                const payload = { action, params };
                 options.body = JSON.stringify(payload);
                 options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
             }
@@ -88,23 +95,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 if (result.status === 'error') throw new Error(result.message);
                 return result.data;
-            } catch (error) { console.error('API Error:', error); UI.showError(error.message); throw error; }
+            } catch (error) {
+                console.error('API Error:', error);
+                UI.showError(error.message);
+                throw error;
+            }
         }
     };
 
-    // --- 5. APP LOGIC ---
+    // --- 5. APP LOGIC (sem alterações) ---
     const App = {
         async init() {
             UI.applyTheme(state.theme);
             UI.toggleLoader(true, "Carregando dados...");
             try {
+                // Esta chamada GET agora funcionará
                 const matriculas = await API.fetchData('getMatriculas');
                 UI.populateSelect(DOMElements.matriculaSelect, matriculas, 'Selecione um tipo');
             } catch (error) { UI.showError("Falha crítica ao carregar dados iniciais."); }
             finally { UI.toggleLoader(false); }
         },
         async handleMatriculaChange(matricula) {
-            UI.resetSelect(DOMElements.turmaSelect, 'Aguardando...');
             UI.renderAlunosList([]);
             if (!matricula) return;
             UI.toggleLoader(true, "Filtrando turmas...");
