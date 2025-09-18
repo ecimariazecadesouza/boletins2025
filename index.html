@@ -3,41 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boletim Escolar Online</title>
+    <title>Sistema de Geração de Boletins</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+    <!-- TELA DE CARREGAMENTO (OVERLAY ) -->
+    <div id="loader-overlay" class="loader-overlay" style="display: none;">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p id="loader-message">Carregando...</p>
+        </div>
+    </div>
+
     <div class="container">
+        <header class="main-header">
+            <h1>Sistema de Geração de Boletins</h1>
+            <p>Selecione os filtros para gerar boletins individuais ou em massa.</p>
+        </header>
+
         <!-- SEÇÃO DE FILTROS -->
         <div class="filtros-card">
-            <h2>Consulta de Boletim</h2>
-            <div class="form-group">
-                <label for="turma-select">1. Selecione a Turma:</label>
-                <select id="turma-select" disabled>
-                    <option>Carregando turmas...</option>
-                </select>
+            <div class="filtro-coluna">
+                <h3>Busca por Turma</h3>
+                <div class="form-group">
+                    <label for="turma-select">1. Selecione a Turma:</label>
+                    <select id="turma-select" disabled>
+                        <option>Carregando...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="aluno-select">2. Selecione o Aluno:</label>
+                    <select id="aluno-select" disabled>
+                        <option>Aguarde a turma...</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="aluno-select">2. Selecione um Aluno (para boletim individual ):</label>
-                <select id="aluno-select" disabled>
-                    <option>Aguardando seleção da turma...</option>
-                </select>
+            <div class="filtro-divisor">OU</div>
+            <div class="filtro-coluna">
+                <h3>Busca por Matrícula</h3>
+                <div class="form-group">
+                    <label for="matricula-input">Digite a Matrícula:</label>
+                    <input type="text" id="matricula-input" placeholder="Ex: 12345">
+                </div>
+                <button id="buscar-matricula-btn" class="button-primary">Buscar Aluno</button>
             </div>
-            
-            <div class="action-buttons">
-                <button id="gerar-turma-btn" class="button-secondary" disabled>Gerar Todos da Turma</button>
-                <button id="print-btn" class="button-primary" style="display: none;">Imprimir / Salvar PDF</button>
-            </div>
-
-            <div id="loader" class="loader" style="display: none;"></div>
-            <div id="error-message" class="error-message" style="display: none;"></div>
         </div>
 
-        <!-- SEÇÃO DO BOLETIM (pode conter múltiplos) -->
+        <div class="action-buttons">
+            <button id="gerar-turma-btn" class="button-secondary" disabled>Gerar Boletins da Turma Inteira</button>
+            <button id="print-btn" class="button-primary" style="display: none;">Imprimir / Salvar PDF</button>
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <!-- CONTAINER DOS BOLETINS -->
         <div id="boletim-container">
             <!-- Os boletins gerados serão inseridos aqui -->
         </div>
