@@ -130,22 +130,21 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
     background-color: #f8f9fa;
     border-bottom: 1px solid var(--cor-borda);
 }
-.boletim-header .logo { max-width: 100px; height: auto; }
+.boletim-header .logo { max-width: 90px; height: auto; }
 .boletim-header .titulo { text-align: center; flex-grow: 1; }
 .boletim-header .titulo h2 { margin: 0; font-size: 1.5rem; color: var(--cor-primaria); }
 .boletim-header .titulo p { margin: 0.25rem 0 0; font-size: 1rem; color: var(--cor-secundaria); }
-.boletim-header .placeholder { width: 100px; } /* Para balancear o layout */
+.boletim-header .header-extra-info { text-align: right; width: 90px; font-size: 0.8rem; }
+.header-extra-info .info-item { margin-bottom: 0.5rem; }
+.header-extra-info strong { color: var(--cor-texto-claro); font-weight: 500; }
 
 .boletim-info-aluno {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
     padding: 1.5rem;
     border-bottom: 1px solid var(--cor-borda);
+    text-align: center;
 }
-.info-item { font-size: 0.9rem; }
-.info-item strong { display: block; color: var(--cor-texto-claro); font-weight: 500; margin-bottom: 0.25rem; }
-.info-item span { font-weight: 600; font-size: 1rem; }
+.info-item-aluno strong { display: block; color: var(--cor-texto-claro); font-weight: 500; margin-bottom: 0.25rem; text-transform: uppercase; }
+.info-item-aluno span { font-weight: 600; font-size: 1.2rem; }
 
 .boletim-main table {
     width: 100%;
@@ -166,21 +165,43 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .boletim-main tbody tr:nth-child(even) { background-color: #f8f9fa; }
 .boletim-main .disciplina-col { text-align: left; font-weight: 500; }
 
-/* --- ESTILOS DE IMPRESSÃO --- */
+/* ===================================================== */
+/* --- ESTILOS DE IMPRESSÃO (AJUSTES IMPORTANTES) --- */
+/* ===================================================== */
 @media print {
-    @page { size: A4 portrait; margin: 1.5cm; }
-    body { padding: 0; margin: 0; background-color: var(--cor-branco); }
+    @page {
+        size: A4 portrait;
+        margin: 1cm; /* Margem menor para dar mais espaço */
+    }
+    body {
+        padding: 0;
+        margin: 0;
+        background-color: var(--cor-branco);
+        font-size: 9pt; /* Reduz o tamanho da fonte base para impressão */
+    }
     .container { max-width: 100%; gap: 0; }
     .main-header, .filtros-card, .action-buttons, .error-message, .loader-overlay { display: none !important; }
     #boletim-container { gap: 0; }
     .boletim-wrapper {
         box-shadow: none;
-        border: none;
+        border: 1px solid #ccc; /* Adiciona uma borda sutil na impressão */
         border-radius: 0;
-        page-break-after: always; /* Cada boletim em uma nova página */
+        page-break-after: always;
         height: 100%;
         display: flex;
         flex-direction: column;
     }
+    .boletim-header { padding: 1rem; }
+    .boletim-header .logo { max-width: 70px; }
+    .boletim-header .titulo h2 { font-size: 1.2rem; }
+    .boletim-header .titulo p { font-size: 0.9rem; }
+    .boletim-header .header-extra-info { font-size: 0.7rem; width: 70px; }
+    
+    .boletim-info-aluno { padding: 1rem; }
+    .info-item-aluno span { font-size: 1rem; }
+
     .boletim-main { flex-grow: 1; }
+    .boletim-main th, .boletim-main td {
+        padding: 0.4rem; /* Reduz o padding das células da tabela */
+    }
 }
