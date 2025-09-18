@@ -1,12 +1,11 @@
 // =================================================================== */
-//             PRESTIGE EDITION - SCRIPT & LOGIC (v4.1 Final)          */
+//             PRESTIGE EDITION - SCRIPT & LOGIC (v4.2 Final)          */
 // =================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. CONFIG & STATE ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbx4LsPvWhADUyy6DLQZICv_TYoJQb8p4_m24zKa9D4zUJKYQaS_eIwrRPl_k7-JLQ0/exec"; // !! IMPORTANTE !!
+    const API_URL = "COLE_SUA_URL_AQUI"; // !! IMPORTANTE !!
     const state = {
-        allStudents: [],
         theme: localStorage.getItem('theme') || 'light',
     };
 
@@ -25,10 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const DOMElements = {
         loader: document.getElementById('loader-overlay'),
         loaderMessage: document.getElementById('loader-message'),
+        matriculaSelect: document.getElementById('matricula-select'),
         turmaSelect: document.getElementById('turma-select'),
-        searchInput: document.getElementById('search-input'),
-        searchResults: document.getElementById('search-results'),
-        gerarTurmaBtn: document.getElementById('gerar-turma-btn'),
+        alunoSelect: document.getElementById('aluno-select'),
+        gerarBtn: document.getElementById('gerar-btn'),
         printBtn: document.getElementById('print-btn'),
         boletimContainer: document.getElementById('boletim-container'),
         errorMessage: document.getElementById('error-message'),
@@ -38,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html: document.documentElement,
     };
 
-    // --- 3. UI & THEME MODULE ---
+    // --- 3. UI MODULE ---
     const UI = {
         toggleLoader(show, message = "Processando...") {
             DOMElements.loaderMessage.textContent = message;
@@ -64,6 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBoletim(html) {
             DOMElements.boletimContainer.innerHTML = html;
             DOMElements.printBtn.style.display = html ? 'flex' : 'none';
+        },
+        resetSelect(select, message) {
+            select.innerHTML = `<option>${message}</option>`;
+            select.disabled = true;
+        },
+        populateSelect(select, data, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            data.forEach(item => select.add(new Option(item, item)));
+            select.disabled = false;
         }
     };
 
@@ -72,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         async fetchData(action, params = {}) {
             const url = new URL(API_URL);
             url.searchParams.append('action', action);
-            for (const key in params) { url.searchParams.append(key, params[key]); }
+            for (const key in params) { if(params[key]) url.searchParams.append(key, params[key]); }
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`Erro de rede: ${response.statusText}`);
@@ -91,76 +99,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const App = {
         async init() {
             UI.applyTheme(state.theme);
-            UI.toggleLoader(true, "Carregando dados da instituição...");
+            UI.toggleLoader(true, "Carregando dados...");
             try {
-                const [turmas, allStudents] = await Promise.all([
-                    API.fetchData('getTurmas'),
-                    API.fetchData('getAllStudents') // Assume a new API endpoint
-                ]);
-                state.allStudents = allStudents;
-
-                DOMElements.turmaSelect.innerHTML = '<option value="">Selecione uma turma</option>';
-                turmas.forEach(turma => DOMElements.turmaSelect.add(new Option(turma, turma)));
-                DOMElements.turmaSelect.disabled = false;
+                const matriculas = await API.fetchData('getMatriculas');
+                UI.populateSelect(DOMElements.matriculaSelect, matriculas, 'Selecione um tipo');
             } catch (error) {
-                UI.showError("Falha crítica ao carregar dados iniciais. O portal não pode operar.");
+                UI.showError("Falha crítica ao carregar dados iniciais.");
             } finally {
                 UI.toggleLoader(false);
             }
         },
 
-        handleSearch(query) {
-            if (query.length < 2) {
-                DOMElements.searchResults.innerHTML = '';
-                return;
-            }
-            const lowerQuery = query.toLowerCase();
-            const results = state.allStudents
-                .filter(s => s.Protagonistas.toLowerCase().includes(lowerQuery) || s.Matrícula.toString().includes(lowerQuery))
-                .slice(0, 5); // Limit results for performance
+        async handleMatriculaChange(matricula) {
+            UI.resetSelect(DOMElements.turmaSelect, 'Aguardando...');
+            UI.resetSelect(DOMElements.alunoSelect, 'Aguardando...');
+            DOMElements.gerarBtn.disabled = true;
+            if (!matricula) return;
 
-            let resultsHTML = '';
-            if (results.length > 0) {
-                resultsHTML = results.map(s => `
-                    <div class="search-result-item" data-matricula="${s.Matrícula}">
-                        <strong>${s.Protagonistas}</strong>
-                        <span>Matrícula: ${s.Matrícula} | Turma: ${s['S/T']}</span>
-                    </div>
-                `).join('');
-            }
-            DOMElements.searchResults.innerHTML = resultsHTML;
-        },
-
-        async generateBoletimByMatricula(matricula) {
-            UI.toggleLoader(true, "Gerando boletim...");
-            UI.clearError();
-            DOMElements.searchResults.innerHTML = '';
-            DOMElements.searchInput.value = '';
+            UI.toggleLoader(true, "Filtrando turmas...");
             try {
-                const data = await API.fetchData('getBoletim', { matricula });
-                if (!data) throw new Error("Aluno não encontrado.");
-                UI.renderBoletim(this.getBoletimHTML(data));
-            } catch (error) {
-                UI.renderBoletim('');
+                const { turmas } = await API.fetchData('getFilteredData', { matricula });
+                UI.populateSelect(DOMElements.turmaSelect, turmas, 'Todas as turmas');
+                DOMElements.gerarBtn.disabled = false;
             } finally {
                 UI.toggleLoader(false);
             }
         },
 
-        async generateBoletinsByTurma(turma) {
-            if (!turma) return;
-            UI.toggleLoader(true, "Iniciando geração em massa...");
+        async handleTurmaChange(matricula, turma) {
+            UI.resetSelect(DOMElements.alunoSelect, 'Aguardando...');
+            if (!matricula) return;
+
+            UI.toggleLoader(true, "Filtrando alunos...");
+            try {
+                const { alunos } = await API.fetchData('getFilteredData', { matricula, turma });
+                UI.populateSelect(DOMElements.alunoSelect, alunos, 'Todos os alunos');
+            } finally {
+                UI.toggleLoader(false);
+            }
+        },
+
+        async handleGerarClick() {
+            const matricula = DOMElements.matriculaSelect.value;
+            const turma = DOMElements.turmaSelect.value;
+            const aluno = DOMElements.alunoSelect.value;
+
+            if (!matricula) return;
+
+            UI.toggleLoader(true, "Iniciando geração...");
             UI.clearError();
             UI.renderBoletim('');
+
             try {
-                const alunosDaTurma = state.allStudents.filter(s => s['S/T'] === turma);
-                if (alunosDaTurma.length === 0) throw new Error("Nenhum aluno encontrado para esta turma.");
+                const { alunos: alunosParaGerar } = await API.fetchData('getFilteredData', { matricula, turma, aluno });
+                if (alunosParaGerar.length === 0) throw new Error("Nenhum aluno encontrado com os filtros selecionados.");
 
                 let boletinsHTML = '';
-                for (let i = 0; i < alunosDaTurma.length; i++) {
-                    UI.toggleLoader(true, `Gerando boletim ${i + 1} de ${alunosDaTurma.length}...`);
-                    const data = await API.fetchData('getBoletim', { matricula: alunosDaTurma[i].Matrícula });
-                    boletinsHTML += this.getBoletimHTML(data);
+                for (let i = 0; i < alunosParaGerar.length; i++) {
+                    UI.toggleLoader(true, `Gerando boletim ${i + 1} de ${alunosParaGerar.length}...`);
+                    const data = await API.fetchData('getBoletim', { matricula, turma, aluno: alunosParaGerar[i] });
+                    if(data) boletinsHTML += this.getBoletimHTML(data);
                 }
                 UI.renderBoletim(boletinsHTML);
             } catch (error) {
@@ -212,18 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 6. EVENT LISTENERS ---
     DOMElements.themeToggle.addEventListener('click', () => UI.toggleTheme());
     DOMElements.printBtn.addEventListener('click', () => window.print());
-    DOMElements.turmaSelect.addEventListener('change', () => {
-        DOMElements.gerarTurmaBtn.disabled = !DOMElements.turmaSelect.value;
-    });
-    DOMElements.gerarTurmaBtn.addEventListener('click', () => App.generateBoletinsByTurma(DOMElements.turmaSelect.value));
-    DOMElements.searchInput.addEventListener('input', (e) => App.handleSearch(e.target.value));
-    DOMElements.searchResults.addEventListener('click', (e) => {
-        const item = e.target.closest('.search-result-item');
-        if (item) {
-            const matricula = item.dataset.matricula;
-            App.generateBoletimByMatricula(matricula);
-        }
-    });
+    DOMElements.matriculaSelect.addEventListener('change', (e) => App.handleMatriculaChange(e.target.value));
+    DOMElements.turmaSelect.addEventListener('change', (e) => App.handleTurmaChange(DOMElements.matriculaSelect.value, e.target.value));
+    DOMElements.gerarBtn.addEventListener('click', () => App.handleGerarClick());
 
     // --- INITIALIZE APP ---
     App.init();
