@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `<div class="boletim-wrapper">
                 <header class="boletim-header">
                     <img src="logo.png" alt="Logo da Escola" class="logo">
-                    <div class="titulo"><h2>Boletim de Desempenho Acadêmico</h2><p>Ano Letivo: 2025</p></div>
+                    <div class="titulo"><h2>Boletim de Desempenho Escolar</h2><p>Ano Letivo: 2025</p></div>
                     <div class="header-extra-info"><div><strong>Matrícula:</strong> ${data.Matrícula}</div><div><strong>Turma:</strong> ${data['S/T']}</div></div>
                 </header>
                 <section class="boletim-info-aluno">
